@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ingresar Nombre de la Tabla</title>
+</head>
+<body>
+<h1>Ingresar Nombre de la Tabla</h1>
+<input type="text" id="tableName" placeholder="Ingrese el nombre de la tabla" />
+<button id="submitBtn">Aceptar</button>
+
+<script>
+    const { ipcRenderer } = require('electron');
+
+    const submitBtn = document.getElementById('submitBtn');
+    const tableNameInput = document.getElementById('tableName');
+    document.getElementById('submitBtn').addEventListener('click', () => {
+        const tableName = document.getElementById('tableName').value;
+        ipcRenderer.send('table-name', tableName);
+        tableNameInput.value = '';
+        submitBtn.disabled = true;
+    });
+</script>
+</body>
+</html>
