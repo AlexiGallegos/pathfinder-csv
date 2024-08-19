@@ -99,10 +99,11 @@ app.on('activate', () => {
 async function insertData(batch, mainWindow, fileName) {
     const chunkedData = await chunkData(batch);
     let lotesInsertados = 0;
+    let schema = 'pathfinder_public';
 
     for (const chunk of chunkedData) {
         try {
-            await knex.batchInsert(tableName, chunk);
+            await knex.batchInsert(`${schema}.${tableName}`, chunk);
             lotesInsertados++;
             console.log(`Lote ${lotesInsertados} insertado correctamente`);
         } catch (error) {
