@@ -17,6 +17,18 @@ const knex = require('knex')({
 
 let tableName;
 let fileQueue = [];
+const tablasPermitidas = [
+    'inscritos_puntajes_paes',
+    'inscritos_puntajes_ptu',
+    'matricula_educacion_basica_media',
+    'matricula_educacion_superior',
+    'notas_egresados_educacion_media',
+    'postulantes_paes',
+    'postulantes_pdt',
+    'practicantes_titulados_tp',
+    'rendimientos',
+    'titulados_educacion_superior',
+];
 
 function createWindow () {
     const mainWindow = new BrowserWindow({
@@ -34,6 +46,15 @@ function createWindow () {
     ipcMain.on('table-name', (event, name) => {
         if (name) {
             tableName = name;
+            if (!tablasPermitidas.includes(tableName)) {
+                dialog.showMessageBox(mainWindow, {
+                    message: 'La tabla ingresada no es válida.',
+                    buttons: ['Aceptar']
+                }).then(() => {
+                    mainWindow.close();
+                });
+                return;
+            }
             openFileDialog(mainWindow, tableName);
         } else {
             mainWindow.close();
