@@ -16,6 +16,7 @@ const knex = require('knex')({
 });
 
 let tableName;
+let fileQueue = [];
 
 function createWindow () {
     const mainWindow = new BrowserWindow({
@@ -42,14 +43,31 @@ function createWindow () {
 
 function openFileDialog(mainWindow) {
     dialog.showOpenDialog({
-        properties: ['openFile'],
+        properties: ['openFile', 'multiSelections'],
         filters: [{ name: 'CSV Files', extensions: ['csv'] }]
     }).then(result => {
         if (!result.canceled && result.filePaths.length > 0) {
-            const inputFilePath = result.filePaths[0];
-            processFile(inputFilePath, mainWindow);
+            fileQueue = result.filePaths;
+            processNextFile(mainWindow);
         }
     });
+}
+
+async function processNextFile(mainWindow) {
+    if (fileQueue.length === 0) {
+        dialog.showMessageBox(mainWindow, {
+            message: 'Todos los archivos han sido procesados.',
+            buttons: ['Aceptar']
+        }).then(() => {
+            mainWindow.close();
+        });
+        return;
+    }
+
+    await delay(3000);
+
+    const nextFilePath = fileQueue.shift();
+    processFile(nextFilePath, mainWindow);
 }
 
 function processFile(inputFilePath, mainWindow) {
@@ -78,6 +96,7 @@ function processFile(inputFilePath, mainWindow) {
         })
         .on('end', async () => {
             await insertData(batch, mainWindow, fileName);
+            await processNextFile(mainWindow);
         });
 }
 
@@ -110,19 +129,7 @@ async function insertData(batch, mainWindow, fileName) {
             console.error('Error al insertar datos:', error);
         }
     }
-
-    dialog.showMessageBox(mainWindow, {
-        message: `El archivo '${fileName}' ha sido procesado e insertado correctamente. ¿Desea procesar otro archivo?`,
-        buttons: ['Sí', 'No'],
-        defaultId: 0,
-        cancelId: 1
-    }).then(response => {
-        if (response.response === 0) {
-            openFileDialog(mainWindow);
-        } else {
-            mainWindow.close();
-        }
-    });
+    console.log(`El archivo '${fileName}' ha sido procesado e insertado correctamente en la tabla '${tableName}'.`)
 }
 
 async function chunkData(batch, size = 2000) {
@@ -132,4 +139,8 @@ async function chunkData(batch, size = 2000) {
     }
 
     return chunkedArray;
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
