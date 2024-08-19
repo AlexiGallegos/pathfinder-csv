@@ -28,6 +28,7 @@ const tablasPermitidas = [
     'practicantes_titulados_tp',
     'rendimientos',
     'titulados_educacion_superior',
+    'becas_creditos_educacion_superior',
 ];
 
 function createWindow () {
