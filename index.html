@@ -7,19 +7,47 @@
 </head>
 <body>
 <h1>Ingresar Nombre de la Tabla</h1>
-<input type="text" id="tableName" placeholder="Ingrese el nombre de la tabla" />
-<button id="submitBtn">Aceptar</button>
+<h1>Selecciona una tabla</h1>
+<form id="tableForm">
+    <label for="tableSelector">Tabla:</label>
+    <select id="tableSelector">
+        <option value="">Seleccione una tabla</option>
+    </select>
+    <button id="submitForm" type="submit">Aceptar</button>
+</form>
 
 <script>
     const { ipcRenderer } = require('electron');
+    const tablasPermitidas = [
+        'inscritos_puntajes_paes',
+        'inscritos_puntajes_ptu',
+        'matricula_educacion_basica_media',
+        'matricula_educacion_superior',
+        'notas_egresados_educacion_media',
+        'postulantes_paes',
+        'postulantes_pdt',
+        'practicantes_titulados_tp',
+        'rendimientos',
+        'titulados_educacion_superior',
+        'postulaciones_becas_creditos',
+        'asignacion_becas_creditos',
+    ];
 
-    const submitBtn = document.getElementById('submitBtn');
-    const tableNameInput = document.getElementById('tableName');
-    document.getElementById('submitBtn').addEventListener('click', () => {
-        const tableName = document.getElementById('tableName').value;
-        ipcRenderer.send('table-name', tableName);
-        tableNameInput.value = '';
-        submitBtn.disabled = true;
+    const tableSelector = document.getElementById('tableSelector');
+    const submitForm = document.getElementById('submitForm');
+    tablasPermitidas.forEach((tabla, index) => {
+        const option = document.createElement('option');
+        option.value = tabla;
+        option.textContent = `${index + 1}. ${tabla}`;
+        tableSelector.appendChild(option);
+    });
+
+    document.getElementById('tableForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const selectedTable = tableSelector.value;
+        ipcRenderer.send('table-name', selectedTable);
+        tableSelector.disabled = true;
+        submitForm.disabled = true;
     });
 </script>
 </body>
