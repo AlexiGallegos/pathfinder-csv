@@ -118,7 +118,7 @@ app.on('activate', () => {
     }
 });
 async function insertData(batch, mainWindow, fileName) {
-    const chunkedData = tableName === 'inscritos_puntajes_paes'
+    const chunkedData = ['inscritos_puntajes_paes', 'inscritos_puntajes_ptu'].includes(tableName)
         ? await chunkData(batch, 500)
         : await chunkData(batch);
     let lotesInsertados = 0;
