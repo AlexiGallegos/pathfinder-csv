@@ -87,7 +87,9 @@ function processFile(inputFilePath, mainWindow) {
             }
 
             row = Object.entries(row).reduce((acc, [key, value]) => {
-                acc[key.toLowerCase()] = value;
+                let sanitizedKey = key.replace(/[^a-z0-9_]/gi, '');
+                acc[sanitizedKey.toLowerCase()] = value;
+
                 return acc;
             }, {});
 
@@ -116,7 +118,9 @@ app.on('activate', () => {
     }
 });
 async function insertData(batch, mainWindow, fileName) {
-    const chunkedData = await chunkData(batch);
+    const chunkedData = tableName === 'inscritos_puntajes_paes'
+        ? await chunkData(batch, 500)
+        : await chunkData(batch);
     let lotesInsertados = 0;
     let schema = 'pathfinder_public';
 
