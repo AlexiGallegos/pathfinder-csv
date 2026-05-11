@@ -70,14 +70,20 @@ async function processNextFile(mainWindow) {
     processFile(nextFilePath, mainWindow);
 }
 
+function detectSeparator(filePath) {
+    const firstLine = fs.readFileSync(filePath, 'utf8').split('\n')[0];
+    return firstLine.includes(';') ? ';' : ',';
+}
+
 function processFile(inputFilePath, mainWindow) {
     let batch = [];
 
+    const separator = detectSeparator(inputFilePath);
     const readStream = fs.createReadStream(inputFilePath);
     const fileName = path.basename(inputFilePath);
 
     readStream
-        .pipe(csv({separator: ';'}))
+        .pipe(csv({ separator }))
         .on('data', (row) => {
             if (row['NOM_COM_RBD']) {
                 row['NOM_COM_RBD'] = row['NOM_COM_RBD'].replace(/[^a-z0-9\sáéíóúñ]/gi, '');
