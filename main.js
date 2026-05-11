@@ -71,7 +71,11 @@ async function processNextFile(mainWindow) {
 }
 
 function detectSeparator(filePath) {
-    const firstLine = fs.readFileSync(filePath, 'utf8').split('\n')[0];
+    const buffer = Buffer.alloc(1024);
+    const fd = fs.openSync(filePath, 'r');
+    fs.readSync(fd, buffer, 0, 1024, 0);
+    fs.closeSync(fd);
+    const firstLine = buffer.toString('utf8').split('\n')[0];
     return firstLine.includes(';') ? ';' : ',';
 }
 
