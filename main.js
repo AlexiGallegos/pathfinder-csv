@@ -13,6 +13,11 @@ const knex = require('knex')({
         password: process.env.DB_PASSWORD,
         port: process.env.DB_PORT || 5432,
     },
+    pool: {
+        min: 2,
+        max: 10,
+        acquireTimeoutMillis: 30000
+    }
 });
 
 let tableName;
@@ -128,22 +133,18 @@ app.on('activate', () => {
     }
 });
 async function insertData(batch, mainWindow, fileName) {
-    const chunkedData = ['inscritos_puntajes_paes', 'inscritos_puntajes_ptu'].includes(tableName)
-        ? await chunkData(batch, 500)
-        : await chunkData(batch);
-    let lotesInsertados = 0;
-    let schema = 'pathfinder_public';
+    const size = ['inscritos_puntajes_paes', 'inscritos_puntajes_ptu'].includes(tableName) ? 500 : 2000;
+    const chunks = await chunkData(batch, size);
+    const schema = 'pathfinder_public';
 
-    for (const chunk of chunkedData) {
-        try {
-            await knex.batchInsert(`${schema}.${tableName}`, chunk);
-            lotesInsertados++;
-            console.log(`Lote ${lotesInsertados} insertado correctamente`);
-        } catch (error) {
-            console.error('Error al insertar datos:', error);
+    await knex.transaction(async (trx) => {
+        for (let i = 0; i < chunks.length; i++) {
+            await trx.batchInsert(`${schema}.${tableName}`, chunks[i]);
+            console.log(`[${fileName}] Chunk ${i + 1}/${chunks.length} ✓`);
         }
-    }
-    console.log(`El archivo '${fileName}' ha sido procesado e insertado correctamente en la tabla '${tableName}'.`)
+    });
+
+    console.log(`Archivo '${fileName}' insertado en '${tableName}'.`);
 }
 
 async function chunkData(batch, size = 2000) {
